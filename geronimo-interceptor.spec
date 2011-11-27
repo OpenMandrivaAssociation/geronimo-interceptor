@@ -3,7 +3,7 @@
 
 Name:             geronimo-interceptor
 Version:          1.0.1
-Release:          4
+Release:          6
 Summary:          Java EE: Interceptor API v3.0
 Group:            Development/Java
 License:          ASL 2.0
