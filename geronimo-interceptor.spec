@@ -1,41 +1,32 @@
+%{?_javapackages_macros:%_javapackages_macros}
 %global spec_ver 3.0
 %global spec_name geronimo-interceptor_%{spec_ver}_spec
 
 Name:             geronimo-interceptor
 Version:          1.0.1
-Release:          6
+Release:          11.0%{?dist}
 Summary:          Java EE: Interceptor API v3.0
-Group:            Development/Java
 License:          ASL 2.0
 URL:              http://geronimo.apache.org/
 
 # svn export http://svn.apache.org/repos/asf/geronimo/specs/tags/geronimo-interceptor_3.0_spec-1.0.1/
 # tar czf geronimo-interceptor_3.0_spec-1.0.1.tar.gz geronimo-interceptor_3.0_spec-1.0.1/
 Source0:          %{spec_name}-%{version}.tar.gz
-BuildRoot:        %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:        noarch
 
-BuildRequires:    java-devel >= 0:1.6.0
+BuildRequires:    java-devel
 BuildRequires:    jpackage-utils
-BuildRequires:    maven2 >= 2.2.1
+BuildRequires:    maven-local
 BuildRequires:    geronimo-parent-poms
-BuildRequires:    maven-resources-plugin
-
-Requires:         java >= 0:1.6.0
-Requires:         jpackage-utils
-Requires(post):   jpackage-utils
-Requires(postun): jpackage-utils
 
 Provides:         interceptor_api = %{spec_ver}
 
 %description
-Contains annotations and interfaces for defining interceptor methods, 
+Contains annotations and interfaces for defining interceptor methods,
 interceptor classes and for binding interceptor classes to target classes.
 
 %package javadoc
-Group:            Development/Java
 Summary:          Javadoc for %{name}
-Requires:         jpackage-utils
 
 %description javadoc
 This package contains the API documentation for %{name}.
@@ -44,54 +35,52 @@ This package contains the API documentation for %{name}.
 %prep
 %setup -q -n %{spec_name}-%{version}
 
+%mvn_alias : org.apache.geronimo.specs:geronimo-interceptor_1.1_spec
+
+%mvn_file : %{name} interceptor
+
 %build
-export MAVEN_REPO_LOCAL=$(pwd)/.m2/repository
-mvn-jpp \
-        -e \
-        -Dmaven2.jpp.mode=true \
-        -Dmaven.repo.local=$MAVEN_REPO_LOCAL \
-        install javadoc:javadoc
+%mvn_build
 
 %install
-rm -rf %{buildroot}
+%mvn_install
 
-# jars
-install -d -m 0755 %{buildroot}%{_javadir}
-install -m 644 target/%{spec_name}-%{version}.jar %{buildroot}%{_javadir}/%{name}-%{version}.jar
-ln -s %{name}-%{version}.jar %{buildroot}%{_javadir}/%{name}.jar
-ln -s %{name}-%{version}.jar %{buildroot}%{_javadir}/interceptor.jar
+%files -f .mfiles
+%doc LICENSE.txt NOTICE.txt
 
-# poms
-install -d -m 0755 %{buildroot}%{_mavenpomdir}
-install -pm 644 pom.xml %{buildroot}%{_mavenpomdir}/JPP-%{name}.pom
-%add_to_maven_depmap org.apache.geronimo.specs %{spec_name} %{version} JPP %{name}
-%add_to_maven_depmap org.apache.geronimo.specs geronimo-interceptor_1.1_spec 1.0 JPP %{name}
+%files javadoc -f .mfiles-javadoc
+%doc LICENSE.txt NOTICE.txt
 
-# javadoc
-install -d -m 0755 %{buildroot}%{_javadocdir}/%{name}-%{version}
-cp -pr target/site/api*/* %{buildroot}%{_javadocdir}/%{name}-%{version}/
-ln -s %{name}-%{version} %{buildroot}%{_javadocdir}/%{name}
+%changelog
+* Thu Aug 08 2013 Stanislav Ochotnicky <sochotnicky@redhat.com> - 1.0.1-11
+- Update to latest packaging guidelines
 
+* Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0.1-10
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
 
-%post
-%update_maven_depmap
+* Sun Mar 03 2013 Mat Booth <fedora@matbooth.co.uk> - 1.0.1-9
+- Change BR from maven2 to maven-local, fixes FTBFS rhbz #914028
 
-%postun
-%update_maven_depmap
+* Wed Feb 13 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0.1-8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
 
-%clean
-rm -rf %{buildroot}
+* Thu Jul 19 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0.1-7
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
 
-%files
-%defattr(-,root,root,-)
-%doc LICENSE.txt
-%{_javadir}/*
-%{_mavenpomdir}/*
-%{_mavendepmapfragdir}/*
+* Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0.1-6
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
 
-%files javadoc
-%defattr(-,root,root,-)
-%doc LICENSE.txt
-%{_javadocdir}/%{name}-%{version}
-%{_javadocdir}/%{name}
+* Fri Dec 16 2011 Alexander Kurtakov <akurtako@redhat.com> 1.0.1-5
+- Build with maven 3.
 
+* Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.0.1-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
+* Wed Aug 4 2010 Chris Spike <chris.spike@arcor.de> 1.0.1-3
+- Added 'org.apache.geronimo.specs:geronimo-interceptor_1.1_spec' to maven depmap
+
+* Mon Jul 26 2010 Chris Spike <chris.spike@arcor.de> 1.0.1-2
+- Consistently using 'rm' now
+
+* Mon Jul 19 2010 Chris Spike <chris.spike@arcor.de> 1.0.1-1
+- Initial version of the package
